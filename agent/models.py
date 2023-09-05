@@ -44,7 +44,7 @@ class Mailing(models.Model):
     send_time = models.TimeField(verbose_name='время рассылки')
     send_frequency = models.CharField(max_length=20, choices=PERIODS, verbose_name='периодичность')
     mailing_status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_CREATED, verbose_name='статус')
-    mailing_clients = models.ManyToManyField(Client, **NULLABLE, verbose_name='подписчики')
+    mailing_clients = models.ManyToManyField(Client, verbose_name='подписчики')
     subject = models.CharField(max_length=200, verbose_name='тема письма')
     body = models.TextField(verbose_name='тело письма')
 
