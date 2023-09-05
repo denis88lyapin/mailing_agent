@@ -41,7 +41,7 @@ class Mailing(models.Model):
         (STATUS_DONE, 'Завершена'),
     )
 
-    send_time = models.TimeField(verbose_name='время рассылки')
+    send_time = models.DateTimeField(verbose_name='время рассылки')
     send_frequency = models.CharField(max_length=20, choices=PERIODS, verbose_name='периодичность')
     mailing_status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_CREATED, verbose_name='статус')
     mailing_clients = models.ManyToManyField(Client, verbose_name='подписчики')
@@ -64,7 +64,7 @@ class MailingLog(models.Model):
         (STATUS_FAILED, 'Ошибка'),
     )
 
-    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='дата и время последней попытки')
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name='дата и время последней попытки')
     log_status = models.CharField(max_length=20, choices=STATUSES, verbose_name='статус попытки')
     log_client = models.ManyToManyField(Client, verbose_name='подписчик')
     log_mailing = models.ManyToManyField(Mailing, verbose_name='рассылка')

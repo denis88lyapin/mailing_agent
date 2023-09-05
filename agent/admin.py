@@ -21,7 +21,7 @@ class MailingAdmin(admin.ModelAdmin):
 
 @admin.register(MailingLog)
 class MailingLogAdmin(admin.ModelAdmin):
-    list_display = ('timestamp', 'log_status', 'display_mailing_clients', 'display_mailing_log_mailing', 'response')
+    list_display = ('created_time', 'log_status', 'display_mailing_clients', 'display_mailing_log_mailing', 'response')
     search_fields = ('log_status', 'log_client', 'log_mailing')
 
     def display_mailing_clients(self, obj):
