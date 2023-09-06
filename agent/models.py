@@ -66,8 +66,8 @@ class MailingLog(models.Model):
 
     created_time = models.DateTimeField(auto_now_add=True, verbose_name='дата и время последней попытки')
     log_status = models.CharField(max_length=20, choices=STATUSES, verbose_name='статус попытки')
-    log_client = models.ManyToManyField(Client, verbose_name='подписчик')
-    log_mailing = models.ManyToManyField(Mailing, verbose_name='рассылка')
+    log_client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name='подписчик')
+    log_mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE, verbose_name='рассылка')
     response = models.TextField(**NULLABLE, verbose_name='ответ сервера')
 
     def __str__(self):

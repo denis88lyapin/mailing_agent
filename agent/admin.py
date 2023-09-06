@@ -21,15 +21,15 @@ class MailingAdmin(admin.ModelAdmin):
 
 @admin.register(MailingLog)
 class MailingLogAdmin(admin.ModelAdmin):
-    list_display = ('created_time', 'log_status', 'display_mailing_clients', 'display_mailing_log_mailing', 'response')
+    list_display = ('created_time', 'log_status', 'log_client', 'log_mailing', 'response')
     search_fields = ('log_status', 'log_client', 'log_mailing')
 
-    def display_mailing_clients(self, obj):
-        return ', '.join([client.email for client in obj.log_client.all()])
-
-    display_mailing_clients.short_description = 'MailingLog Clients'
-
-    def display_mailing_log_mailing(self, obj):
-        return ', '.join([mailing.subject for mailing in obj.log_mailing.all()])
-
-    display_mailing_log_mailing.short_description = 'MailingLog Mailing'
+    # def display_mailing_clients(self, obj):
+    #     return ', '.join([client.email for client in obj.log_client.all()])
+    #
+    # display_mailing_clients.short_description = 'MailingLog Clients'
+    #
+    # def display_mailing_log_mailing(self, obj):
+    #     return ', '.join([mailing.subject for mailing in obj.log_mailing.all()])
+    #
+    # display_mailing_log_mailing.short_description = 'MailingLog Mailing'
