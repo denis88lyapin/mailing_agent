@@ -1,0 +1,35 @@
+{% extends 'agent/base.html' %}
+
+{% block content %}
+
+<table class="table table-striped">
+    <tbody>
+    <tr>
+        <th scope="row">Электронная почта</th>
+        <td>{{ object.email }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Фамилия</th>
+        <td>{{ object.last_name }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Имя</th>
+        <td>{{ object.first_name }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Отчество</th>
+        <td>{{ object.surname }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Комментарий</th>
+        <td>{{ object.comment }}</td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="text-center">
+    <a href="{% url 'agent:client_update' object.pk %}" class="btn btn-primary">Изменить</a>
+    <a href="{% url 'agent:client_delete' object.pk %}" class="btn btn-danger">Удалить</a>
+</div>
+
+{% endblock %}
