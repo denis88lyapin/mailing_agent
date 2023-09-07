@@ -32,6 +32,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_crontab',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -152,3 +154,7 @@ if CACHE_ENABLED:
             'LOCATION': config('REDIS_HOST')
         }
     }
+
+CRONJOBS = [
+    ('*/5 * * * *', 'agent.send_mailing.send_mails')
+]

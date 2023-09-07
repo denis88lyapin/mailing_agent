@@ -71,7 +71,7 @@ class MailingLog(models.Model):
     response = models.TextField(**NULLABLE, verbose_name='ответ сервера')
 
     def __str__(self):
-        return f"{self.log_client} - {self.log_mailing} ({self.log_status})"
+        return f"{self.log_client} - {self.log_mailing} ({self.log_status}) в {self.created_time}"
 
     class Meta:
         verbose_name = 'лог'
