@@ -140,7 +140,7 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_SSL = True
 
-# AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.User'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/users/login/'
@@ -156,5 +156,5 @@ if CACHE_ENABLED:
     }
 
 CRONJOBS = [
-    ('*/5 * * * *', 'agent.send_mailing.send_mails')
+    ('*/1 * * * *', 'agent.send_mailing.send_mails')
 ]
