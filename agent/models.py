@@ -1,5 +1,7 @@
 from django.db import models
 
+from config import settings
+
 NULLABLE = {
     'null': True,
     'blank': True
@@ -12,6 +14,8 @@ class Client(models.Model):
     last_name = models.CharField(max_length=100, **NULLABLE, verbose_name='фамилия')
     surname = models.CharField(max_length=100, **NULLABLE, verbose_name='отчество')
     comment = models.TextField(**NULLABLE, verbose_name='комментарий')
+    client_owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, verbose_name='владелец',
+                                     **NULLABLE)
 
     def __str__(self):
         return f'{self.email} ({self.first_name} {self.last_name})'
@@ -47,6 +51,8 @@ class Mailing(models.Model):
     mailing_clients = models.ManyToManyField(Client, **NULLABLE, verbose_name='подписчики')
     subject = models.CharField(max_length=200, verbose_name='тема письма')
     body = models.TextField(verbose_name='тело письма')
+    mailing_owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, verbose_name='владелец',
+                                      **NULLABLE)
 
     def __str__(self):
         return f"Рассылка {self.subject} в {self.send_time} ({self.send_frequency})"
@@ -54,6 +60,9 @@ class Mailing(models.Model):
     class Meta:
         verbose_name = 'рассылка'
         verbose_name_plural = 'рассылки'
+        permissions = [
+            ('set_mailing_status', 'Can change the status of mailing'),
+        ]
 
 
 class MailingLog(models.Model):

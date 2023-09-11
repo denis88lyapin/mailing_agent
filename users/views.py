@@ -37,7 +37,7 @@ class RegisterView(CreateView):
         user.vrf_token = vrf_token
         user.save()
         to = user.email
-        subject = 'Регистрация в нашем проекте E-shop!'
+        subject = 'Регистрация в нашем проекте MailingAgent!'
         message = f'Для регистрации перейдите по ссылке {confirm_url}!'
         from_email = settings.EMAIL_HOST_USER
         send_mail(
@@ -100,7 +100,7 @@ def reset_password(request):
             user.set_password(new_password)
             user.save()
 
-            subject = "Смена пароля на платформе E-shop"
+            subject = "Смена пароля на платформе MailingAgent!"
             message = f"Ваш новый пароль: {new_password}"
             from_email = settings.EMAIL_HOST_USER
             send_mail(

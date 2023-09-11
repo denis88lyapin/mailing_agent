@@ -13,6 +13,7 @@
                 <p class="card-text">Фамилия: {{ object.last_name }}</p>
                 <p class="card-text">Имя: {{ object.first_name }}</p>
                 <p class="card-text">Отчество: {{ object.surname }}</p>
+                <p class="card-text">Владелец: {{ object.client_owner }}</p>
                 <div class="d-flex justify-content-between align-items-center">
                     <a href="{% url 'agent:client_detail' object.pk %}" type="button"
                        class="btn btn-sm btn-outline-secondary">Подробнее</a>

@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
@@ -13,7 +14,7 @@ class MailingListView(ListView):
     }
 
 
-class MailingCreateView(CreateView):
+class MailingCreateView(LoginRequiredMixin, CreateView):
     model = Mailing
     form_class = MailingForm
     extra_context = {
@@ -23,8 +24,14 @@ class MailingCreateView(CreateView):
     def get_success_url(self):
         return reverse('agent:mailing_detail', args=[self.object.pk])
 
+    def form_valid(self, form):
+        self.object = form.save()
+        self.object.mailing_owner = self.request.user
+        self.object.save()
+        return redirect(self.get_success_url())
 
-class MailingUpdateView(UpdateView):
+
+class MailingUpdateView(LoginRequiredMixin, UpdateView):
     model = Mailing
     form_class = MailingForm
     extra_context = {
@@ -42,7 +49,7 @@ class MailingDetailView(DetailView):
     }
 
 
-class MailingDeleteView(DeleteView):
+class MailingDeleteView(LoginRequiredMixin, DeleteView):
     model = Mailing
     success_url = reverse_lazy('agent:mailing_list')
     extra_context = {
@@ -50,14 +57,14 @@ class MailingDeleteView(DeleteView):
     }
 
 
-class ClientListView(ListView):
+class ClientListView(LoginRequiredMixin, ListView):
     model = Client
     extra_context = {
         'title': 'Мои клиенты'
     }
 
 
-class ClientCreateView(CreateView):
+class ClientCreateView(LoginRequiredMixin, CreateView):
     model = Client
     form_class = ClientForm
     extra_context = {
@@ -67,8 +74,14 @@ class ClientCreateView(CreateView):
     def get_success_url(self):
         return reverse('agent:client_detail', args=[self.object.pk])
 
+    def form_valid(self, form):
+        self.object = form.save()
+        self.object.client_owner = self.request.user
+        self.object.save()
+        return redirect(self.get_success_url())
 
-class ClientUpdateView(UpdateView):
+
+class ClientUpdateView(LoginRequiredMixin, UpdateView):
     model = Client
     form_class = ClientForm
     extra_context = {
@@ -79,14 +92,14 @@ class ClientUpdateView(UpdateView):
         return reverse('agent:client_detail', args=[self.object.pk])
 
 
-class ClientDetailView(DetailView):
+class ClientDetailView(LoginRequiredMixin, DetailView):
     model = Client
     extra_context = {
         'title': 'Информация о клиенте'
     }
 
 
-class ClientDeleteView(DeleteView):
+class ClientDeleteView(LoginRequiredMixin, DeleteView):
     model = Client
     success_url = reverse_lazy('agent:client_list')
     extra_context = {

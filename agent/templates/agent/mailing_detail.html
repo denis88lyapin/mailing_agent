@@ -11,6 +11,7 @@
         <th>Периодичность</th>
         <th>Статус</th>
         <th>Подписчики</th>
+        <th>Владелец</th>
     </tr>
     </thead>
     <tbody>
@@ -27,6 +28,7 @@
                 {% endfor %}
             </ul>
         </td>
+        <td>{{ object.mailing_owner }}</td>
     </tr>
     </tbody>
 </table>
