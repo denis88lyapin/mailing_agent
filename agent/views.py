@@ -10,7 +10,7 @@ from agent.models import Mailing, Client
 class MailingListView(ListView):
     model = Mailing
     extra_context = {
-        'title': 'Мои рассылки'
+        'title': 'Рассылки'
     }
 
 
@@ -105,3 +105,5 @@ class ClientDeleteView(LoginRequiredMixin, DeleteView):
     extra_context = {
         'title': 'Удаление клиента'
     }
+
+

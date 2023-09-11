@@ -1,7 +1,7 @@
 import random
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.contrib.auth.views import LogoutView as BaseLogoutView
 from django.core.mail import send_mail
@@ -13,7 +13,7 @@ from config import settings
 from users.forms import UserForm, UserProfileForm
 from users.models import User
 from django.contrib import messages
-
+from django.views.generic import ListView
 
 class LoginView(BaseLoginView):
     template_name = 'users/login.html'
@@ -113,3 +113,23 @@ def reset_password(request):
         except User.DoesNotExist:
             return render(request, 'users/change_password.html', {'error_message': 'User not found'})
     return render(request, 'users/change_password.html')
+
+
+class UsersListView(ListView, PermissionRequiredMixin, UserPassesTestMixin):
+    model = User
+    permission_required = 'users.view_user'
+    success_url = reverse_lazy('agent:mailing_list')
+    extra_context = {
+        'title': 'Пользователи сервиса'
+    }
+
+    # def test_func(self):
+    #     user = self.request.user
+    #     if user.is_staff:
+    #         return True
+    #     return False
+
+
+
+
+
