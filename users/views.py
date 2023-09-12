@@ -15,6 +15,13 @@ from users.models import User
 from django.contrib import messages
 from django.views.generic import ListView
 
+#
+# import logging
+#
+# logger = logging.getLogger(__name__)
+
+
+
 class LoginView(BaseLoginView):
     template_name = 'users/login.html'
 
@@ -123,13 +130,19 @@ class UsersListView(ListView, PermissionRequiredMixin, UserPassesTestMixin):
         'title': 'Пользователи сервиса'
     }
 
-    # def test_func(self):
-    #     user = self.request.user
-    #     if user.is_staff:
-    #         return True
-    #     return False
+    def test_func(self):
+        user = self.request.user
+        # logger.debug(f"User {user.username} has permissions: {user.get_all_permissions()}")
+        if user.is_staff:
+            return True
+        return False
+    #
+    # def get_queryset(self):
+    #     if self.request.user.is_staff:
+    #         queryset = super().get_queryset()
+    #     else:
+    #         return redirect(reverse_lazy('agent:mailing_list'))
+    #     return queryset
 
-
-
-
-
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:mailing_list'))
