@@ -11,12 +11,21 @@ class VisualMixin:
 
 
 class MailingForm(VisualMixin, forms.ModelForm):
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user.is_staff:
+            mailing_owner = self.instance.mailing_owner
+            self.fields['mailing_clients'].queryset = Client.objects.filter(client_owner=mailing_owner)
+        else:
+            self.fields['mailing_clients'].queryset = Client.objects.filter(client_owner=user)
+
     class Meta:
         model = Mailing
-        fields = '__all__'
+        exclude = ('mailing_owner',)
 
 
 class ClientForm(VisualMixin, forms.ModelForm):
     class Meta:
         model = Client
-        fields = '__all__'
+        exclude = ('client_owner',)

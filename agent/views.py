@@ -26,22 +26,36 @@ class MailingListView(ListView):
         return queryset
 
 
-class MailingCreateView(LoginRequiredMixin, CreateView):
+class MailingCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Mailing
     form_class = MailingForm
     extra_context = {
         'title': 'Добавление рассылки'
     }
 
+    def test_func(self):
+        user = self.request.user
+        if not user.is_staff or user.is_superuser:
+            return True
+        return False
+
     def get_success_url(self):
         return reverse('agent:mailing_detail', args=[self.object.pk])
 
     def form_valid(self, form):
+        user = self.request.user
         self.object = form.save()
-        self.object.mailing_owner = self.request.user
+        self.object.mailing_owner = user
         self.object.save()
         return redirect(self.get_success_url())
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:mailing_list'))
 
 class MailingUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Mailing
@@ -50,6 +64,11 @@ class MailingUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         'title': 'Изменение рассылки'
     }
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def test_func(self):
         user = self.request.user
         mailing = self.get_object()
@@ -57,12 +76,6 @@ class MailingUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         if mailing.mailing_owner == user or user.is_staff:
             return True
         return False
-
-    def get_object(self, queryset=None):
-        self.object = super().get_object(queryset)
-        if self.object.mailing_owner != self.request.user and not self.request.user.is_superuser:
-            raise Http404
-        return self.object
 
     def handle_no_permission(self):
         return redirect(reverse_lazy('agent:mailing_list'))
@@ -85,12 +98,6 @@ class MailingDetailView(DetailView, UserPassesTestMixin):
             return True
         return False
 
-    def get_object(self, queryset=None):
-        self.object = super().get_object(queryset)
-        if self.object.mailing_owner != self.request.user and not self.request.user.is_superuser:
-            raise Http404
-        return self.object
-
     def handle_no_permission(self):
         return redirect(reverse_lazy('agent:mailing_list'))
 
@@ -110,63 +117,118 @@ class MailingDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
             return True
         return False
 
-    def get_object(self, queryset=None):
-        self.object = super().get_object(queryset)
-        if self.object.mailing_owner != self.request.user and not self.request.user.is_superuser:
-            raise Http404
-        return self.object
-
     def handle_no_permission(self):
         return redirect(reverse_lazy('agent:mailing_list'))
 
 
-class ClientListView(LoginRequiredMixin, ListView):
+class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Client
     extra_context = {
         'title': 'Мои клиенты'
     }
 
+    def test_func(self):
+        user = self.request.user
+        if not user.is_staff or user.is_superuser:
+            return True
+        return False
 
-class ClientCreateView(LoginRequiredMixin, CreateView):
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            queryset = super().get_queryset()
+        else:
+            queryset = super().get_queryset().filter(
+                client_owner=user.pk
+            )
+        return queryset
+
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:mailing_list'))
+
+
+class ClientCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Client
     form_class = ClientForm
     extra_context = {
         'title': 'Добавление клиента'
     }
 
+    def test_func(self):
+        user = self.request.user
+        if not user.is_staff or user.is_superuser:
+            return True
+        return False
+
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:mailing_list'))
+
     def get_success_url(self):
         return reverse('agent:client_detail', args=[self.object.pk])
 
     def form_valid(self, form):
-        self.object = form.save()
+        self.object = form.save(commit=False)
         self.object.client_owner = self.request.user
         self.object.save()
         return redirect(self.get_success_url())
 
 
-class ClientUpdateView(LoginRequiredMixin, UpdateView):
+class ClientUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Client
     form_class = ClientForm
     extra_context = {
         'title': 'Изменение клиента'
     }
 
+    def test_func(self):
+        user = self.request.user
+        mailing = self.get_object()
+
+        if mailing.client_owner == user or user.is_staff:
+            return True
+        return False
+
+    def get_object(self, queryset=None):
+        self.object = super().get_object(queryset)
+        if self.object.client_owner != self.request.user and not self.request.user.is_staff:
+            raise Http404
+        return self.object
+
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:client_list'))
+
     def get_success_url(self):
         return reverse('agent:client_detail', args=[self.object.pk])
 
 
-class ClientDetailView(LoginRequiredMixin, DetailView):
+class ClientDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Client
     extra_context = {
         'title': 'Информация о клиенте'
     }
 
+    def test_func(self):
+        user = self.request.user
+        if not user.is_staff or user.is_superuser:
+            return True
+        return False
 
-class ClientDeleteView(LoginRequiredMixin, DeleteView):
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:mailing_list'))
+
+
+class ClientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Client
     success_url = reverse_lazy('agent:client_list')
     extra_context = {
         'title': 'Удаление клиента'
     }
 
+    def test_func(self):
+        user = self.request.user
+        if not user.is_staff or user.is_superuser:
+            return True
+        return False
 
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:mailing_list'))

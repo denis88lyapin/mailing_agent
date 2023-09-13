@@ -4,7 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.contrib.auth.views import LogoutView as BaseLogoutView
+from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
+from django.http import Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import View
@@ -69,7 +71,7 @@ class ConfirmRegistrationView(View):
         return redirect('users:login')
 
 
-class ProfileView(LoginRequiredMixin, UpdateView):
+class ProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = User
     form_class = UserProfileForm
     success_url = reverse_lazy('users:profile')
@@ -136,12 +138,12 @@ class UsersListView(ListView, PermissionRequiredMixin, UserPassesTestMixin):
         if user.is_staff:
             return True
         return False
-    #
+
     # def get_queryset(self):
     #     if self.request.user.is_staff:
     #         queryset = super().get_queryset()
     #     else:
-    #         return redirect(reverse_lazy('agent:mailing_list'))
+    #         raise PermissionDenied
     #     return queryset
 
     def handle_no_permission(self):
