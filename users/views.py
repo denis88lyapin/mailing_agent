@@ -7,21 +7,21 @@ from django.contrib.auth.views import LogoutView as BaseLogoutView
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.http import Http404
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views import View
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
 from config import settings
 from users.forms import UserForm, UserProfileForm
 from users.models import User
 from django.contrib import messages
 from django.views.generic import ListView
 
+
 #
 # import logging
 #
 # logger = logging.getLogger(__name__)
-
 
 
 class LoginView(BaseLoginView):
@@ -76,6 +76,20 @@ class ProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = UserProfileForm
     success_url = reverse_lazy('users:profile')
 
+    def test_func(self):
+        user = self.request.user
+        object = self.get_object()
+        if user.is_superuser or user.email == object.email:
+            return True
+        return False
+
+    def handle_no_permission(self):
+        user = self.request.user
+        if user.is_staff:
+            return redirect(reverse_lazy('users:users_list'))
+        else:
+            return redirect(reverse_lazy('agent:mailing_list'))
+
     def get_object(self, queryset=None):
         return self.request.user
 
@@ -98,7 +112,6 @@ def generate_new_password(request):
     return redirect(reverse('catalog:home'))
 
 
-# @login_required
 def reset_password(request):
     """Сгенерировать новый пароль для пользователя если пароль забыли"""
     if request.method == 'POST':
@@ -124,13 +137,19 @@ def reset_password(request):
     return render(request, 'users/change_password.html')
 
 
-class UsersListView(ListView, PermissionRequiredMixin, UserPassesTestMixin):
+class UsersListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = User
     permission_required = 'users.view_user'
     success_url = reverse_lazy('agent:mailing_list')
     extra_context = {
         'title': 'Пользователи сервиса'
     }
+
+    def get_queryset(self):
+        queryset = User.objects.filter(
+            is_staff=False
+        )
+        return queryset
 
     def test_func(self):
         user = self.request.user
@@ -139,12 +158,67 @@ class UsersListView(ListView, PermissionRequiredMixin, UserPassesTestMixin):
             return True
         return False
 
-    # def get_queryset(self):
-    #     if self.request.user.is_staff:
-    #         queryset = super().get_queryset()
-    #     else:
-    #         raise PermissionDenied
-    #     return queryset
+    def handle_no_permission(self):
+        return redirect(reverse_lazy('agent:mailing_list'))
+
+
+class UsersDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = User
+    extra_context = {
+        'title': 'Информация о пользователе'
+    }
+
+    def test_func(self):
+        user = self.request.user
+        object = self.get_object()
+        if user.is_staff or user.email == object.email:
+            return True
+        return False
 
     def handle_no_permission(self):
         return redirect(reverse_lazy('agent:mailing_list'))
+
+
+class UsersDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = User
+    extra_context = {
+        'title': 'Удаление пользователя'
+    }
+
+    def test_func(self):
+        user = self.request.user
+        object = self.get_object()
+        if not user.is_staff or user.is_superuser or user.email == object.email:
+            return True
+        return False
+
+    def handle_no_permission(self):
+        user = self.request.user
+        if user.is_staff:
+            return redirect(reverse_lazy('users:users_list'))
+        else:
+            return redirect(reverse_lazy('users:register'))
+
+    def get_success_url(self):
+        user = self.request.user
+        if user.is_superuser:
+            return reverse('users:users_list')
+        else:
+            return reverse('users:login')
+
+@login_required(login_url='users:login')
+def toggle_status(request, pk):
+    if request.user.is_staff:
+        user = get_object_or_404(User, pk=pk)
+        user.is_active = not user.is_active
+        user.save()
+
+        if user.is_active:
+            messages.success(request, f"Пользователь {user.email} успешно активирован.")
+        else:
+            messages.success(request, f"Пользователь {user.email} успешно заблокирован.")
+    else:
+        messages.error(request, "У вас нет прав для выполнения этой операции.")
+
+    return redirect('users:detail', pk=pk)
+
