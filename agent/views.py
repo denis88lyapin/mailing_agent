@@ -1,12 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
 from agent.form import MailingForm, ClientForm
-from agent.models import Mailing, Client
+from agent.models import Mailing, Client, MailingLog
 
 
 class MailingListView(ListView):
@@ -17,7 +17,7 @@ class MailingListView(ListView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
+        if user.groups.filter(name='manager').exists() or user.is_superuser:
             queryset = super().get_queryset()
         else:
             queryset = super().get_queryset().filter(
@@ -35,7 +35,7 @@ class MailingCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
         user = self.request.user
-        if not user.is_staff or user.is_superuser:
+        if not user.groups.filter(name='manager').exists():
             return True
         return False
 
@@ -73,7 +73,7 @@ class MailingUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         user = self.request.user
         mailing = self.get_object()
 
-        if mailing.mailing_owner == user or user.is_staff:
+        if mailing.mailing_owner == user or user.groups.filter(name='manager').exists() or user.is_superuser:
             return True
         return False
 
@@ -94,7 +94,7 @@ class MailingDetailView(DetailView, UserPassesTestMixin):
         user = self.request.user
         mailing = self.get_object()
 
-        if mailing.mailing_owner == user or user.is_staff:
+        if mailing.mailing_owner == user or user.groups.filter(name='manager').exists() or user.is_superuser:
             return True
         return False
 
@@ -121,6 +121,17 @@ class MailingDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return redirect(reverse_lazy('agent:mailing_list'))
 
 
+def mailing_logs(request, mailing_id):
+    mailing = get_object_or_404(Mailing, pk=mailing_id)
+    logs = MailingLog.objects.filter(log_mailing=mailing).order_by('-created_time')
+
+    context = {
+        'mailing': mailing,
+        'logs': logs,
+    }
+
+    return render(request, 'agent/mailing_logs.html', context)
+
 class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Client
     extra_context = {
@@ -129,7 +140,7 @@ class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def test_func(self):
         user = self.request.user
-        if not user.is_staff or user.is_superuser:
+        if not user.groups.filter(name='manager').exists() or user.is_superuser:
             return True
         return False
 
@@ -156,7 +167,7 @@ class ClientCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
         user = self.request.user
-        if not user.is_staff or user.is_superuser:
+        if not user.groups.filter(name='manager').exists() or user.is_superuser:
             return True
         return False
 
@@ -184,7 +195,7 @@ class ClientUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         user = self.request.user
         mailing = self.get_object()
 
-        if mailing.client_owner == user or user.is_staff:
+        if mailing.client_owner == user or user.is_superuser:
             return True
         return False
 
@@ -209,7 +220,7 @@ class ClientDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     def test_func(self):
         user = self.request.user
-        if not user.is_staff or user.is_superuser:
+        if not user.groups.filter(name='manager').exists() or user.is_superuser:
             return True
         return False
 
@@ -226,7 +237,7 @@ class ClientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def test_func(self):
         user = self.request.user
-        if not user.is_staff or user.is_superuser:
+        if not user.groups.filter(name='manager').exists() or user.is_superuser:
             return True
         return False
 

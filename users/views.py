@@ -76,6 +76,11 @@ class ProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = UserProfileForm
     success_url = reverse_lazy('users:profile')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
+
     def test_func(self):
         user = self.request.user
         object = self.get_object()
@@ -154,7 +159,7 @@ class UsersListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def test_func(self):
         user = self.request.user
         # logger.debug(f"User {user.username} has permissions: {user.get_all_permissions()}")
-        if user.is_staff:
+        if user.groups.filter(name='manager').exists() or user.is_superuser:
             return True
         return False
 
@@ -171,9 +176,14 @@ class UsersDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     def test_func(self):
         user = self.request.user
         object = self.get_object()
-        if user.is_staff or user.email == object.email:
+        if user.groups.filter(name='manager').exists() or user.is_superuser or user.email == object.email:
             return True
         return False
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
 
     def handle_no_permission(self):
         return redirect(reverse_lazy('agent:mailing_list'))
@@ -188,13 +198,13 @@ class UsersDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         user = self.request.user
         object = self.get_object()
-        if not user.is_staff or user.is_superuser or user.email == object.email:
+        if not user.groups.filter(name='manager').exists() or user.is_superuser or user.email == object.email:
             return True
         return False
 
     def handle_no_permission(self):
         user = self.request.user
-        if user.is_staff:
+        if user.groups.filter(name='manager').exists():
             return redirect(reverse_lazy('users:users_list'))
         else:
             return redirect(reverse_lazy('users:register'))
@@ -206,9 +216,10 @@ class UsersDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         else:
             return reverse('users:login')
 
+
 @login_required(login_url='users:login')
 def toggle_status(request, pk):
-    if request.user.is_staff:
+    if request.user.groups.filter(name='manager').exists() or request.user.is_superuser:
         user = get_object_or_404(User, pk=pk)
         user.is_active = not user.is_active
         user.save()
@@ -221,4 +232,3 @@ def toggle_status(request, pk):
         messages.error(request, "У вас нет прав для выполнения этой операции.")
 
     return redirect('users:detail', pk=pk)
-
