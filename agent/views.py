@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
@@ -56,6 +57,7 @@ class MailingCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def handle_no_permission(self):
         return redirect(reverse_lazy('agent:mailing_list'))
+
 
 class MailingUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Mailing
@@ -121,16 +123,22 @@ class MailingDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return redirect(reverse_lazy('agent:mailing_list'))
 
 
+# @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='manager').exists())
+@login_required
 def mailing_logs(request, mailing_id):
     mailing = get_object_or_404(Mailing, pk=mailing_id)
     logs = MailingLog.objects.filter(log_mailing=mailing).order_by('-created_time')
 
-    context = {
-        'mailing': mailing,
-        'logs': logs,
-    }
+    if (mailing.mailing_owner == request.user or request.user.is_superuser
+            or request.user.groups.filter(name='manager').exists()):
+        context = {
+            'mailing': mailing,
+            'logs': logs,
+        }
+        return render(request, 'agent/mailing_logs.html', context)
+    else:
+        return redirect("agent:mailing_list")
 
-    return render(request, 'agent/mailing_logs.html', context)
 
 class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Client
