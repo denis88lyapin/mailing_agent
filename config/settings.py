@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 
     'agent',
     'users',
+    'blog',
 ]
 
 MIDDLEWARE = [
