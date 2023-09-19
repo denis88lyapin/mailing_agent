@@ -36,7 +36,7 @@ class MailingCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
         user = self.request.user
-        if not user.groups.filter(name='manager').exists():
+        if not user.groups.filter(name='manager').exists() and not user.groups.filter(name='content_manager').exists():
             return True
         return False
 
@@ -148,7 +148,7 @@ class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def test_func(self):
         user = self.request.user
-        if not user.groups.filter(name='manager').exists() or user.is_superuser:
+        if not user.groups.filter(name='manager').exists() and not user.groups.filter(name='content_manager').exists():
             return True
         return False
 
@@ -175,7 +175,7 @@ class ClientCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
         user = self.request.user
-        if not user.groups.filter(name='manager').exists() or user.is_superuser:
+        if not user.groups.filter(name='manager').exists() and not user.groups.filter(name='content_manager').exists():
             return True
         return False
 
@@ -207,14 +207,8 @@ class ClientUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             return True
         return False
 
-    def get_object(self, queryset=None):
-        self.object = super().get_object(queryset)
-        if self.object.client_owner != self.request.user and not self.request.user.is_staff:
-            raise Http404
-        return self.object
-
     def handle_no_permission(self):
-        return redirect(reverse_lazy('agent:client_list'))
+        return redirect(reverse_lazy('agent:mailing_list'))
 
     def get_success_url(self):
         return reverse('agent:client_detail', args=[self.object.pk])
@@ -228,7 +222,7 @@ class ClientDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     def test_func(self):
         user = self.request.user
-        if not user.groups.filter(name='manager').exists() or user.is_superuser:
+        if not user.groups.filter(name='manager').exists() and not user.groups.filter(name='content_manager').exists():
             return True
         return False
 
@@ -245,7 +239,9 @@ class ClientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def test_func(self):
         user = self.request.user
-        if not user.groups.filter(name='manager').exists() or user.is_superuser:
+        client = self.get_object()
+
+        if user == client.client_owner or user.is_superuser:
             return True
         return False
 

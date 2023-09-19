@@ -14,10 +14,10 @@ class MailingForm(VisualMixin, forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if user.is_staff:
-            mailing_owner = self.instance.mailing_owner
+        mailing_owner = self.instance.mailing_owner
+        if user.groups.filter(name='manager').exists() or user.is_superuser:
             self.fields['mailing_clients'].queryset = Client.objects.filter(client_owner=mailing_owner)
-        else:
+        elif not user.groups.filter(name='manager').exists() and not user.groups.filter(name='content_manager').exists():
             self.fields['mailing_clients'].queryset = Client.objects.filter(client_owner=user)
 
     class Meta:
