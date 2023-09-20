@@ -10,6 +10,8 @@ def get_articles_cache():
         if articles_list is None:
             articles_list = Article.objects.all()
             cache.set(key, articles_list)
+        else:
+            return articles_list
     else:
         articles_list = Article.objects.all()
     return articles_list
