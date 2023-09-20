@@ -27,6 +27,7 @@
                 <div class="col-sm-4 offset-md-1 py-4">
                     <h4 class="text-white">Меню</h4>
                     <ul class="list-unstyled">
+                        <li><a href="{% url 'blog:home' %}" class="text-white">Главная</a></li>
                         {% if user.is_staff %}
                         <li><a href="{% url 'users:users_list' %}" class="text-white">Пользователи</a></li>
                         {% endif %}
@@ -46,7 +47,7 @@
     </div>
     <div class="navbar navbar-dark bg-dark box-shadow">
         <div class="container d-flex justify-content-between">
-            <a href="{% url 'agent:mailing_list' %}" class="navbar-brand d-flex align-items-center">
+            <a href="{% url 'blog:home' %}" class="navbar-brand d-flex align-items-center">
                 <strong>MailingAgent</strong>
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader"
@@ -58,18 +59,6 @@
 </header>
 
 <main role="main">
-
-    <!--    <section class="jumbotron text-center">-->
-    <!--        <div class="container">-->
-    <!--            <h1 class="jumbotron-heading">Album example</h1>-->
-    <!--            <p class="lead text-muted">Something short and leading about the collection below—its contents, the creator,-->
-    <!--                etc. Make it short and sweet, but not too short so folks don't simply skip over it entirely.</p>-->
-    <!--            <p>-->
-    <!--                <a href="#" class="btn btn-primary my-2">Main call to action</a>-->
-    <!--                <a href="#" class="btn btn-secondary my-2">Secondary action</a>-->
-    <!--            </p>-->
-    <!--        </div>-->
-    <!--    </section>-->
 
     <div class="album py-5 bg-light">
         <div class="container">
@@ -88,11 +77,8 @@
 <footer class="text-muted">
     <div class="container">
         <p class="float-right">
-            <a href="{% url 'agent:mailing_list' %}">Главная</a>
+            <a href="{% url 'blog:home' %}">Главная</a>
         </p>
-        <p>Album example is &copy; Bootstrap, but please download and customize it for yourself!</p>
-        <p>New to Bootstrap? <a href="../../">Visit the homepage</a> or read our <a href="../../getting-started/">getting
-            started guide</a>.</p>
     </div>
 </footer>
 

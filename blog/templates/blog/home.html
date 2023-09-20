@@ -1,0 +1,28 @@
+{% extends 'agent/base.html' %}
+{% load media_filters %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Количество зарегистрированных рассылок: {{ mailing_count }}</h2>
+    <h2 class="mb-4">Количество активных рассылок: {{ mailing_active_count }}</h2>
+    <h2 class="mb-4">Наш блог:</h2>
+
+    <div class="row">
+        {% for article in articles %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <img src="{{ article.image|mediapath }}" class="card-img-top" alt="{{ article.title }}">
+                <div class="card-body">
+                    <h4 class="card-title">{{ article.title }}</h4>
+                    <p class="card-text">{{ article.body }}</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Количество просмотров: {{ article.view_count }}</li>
+                    <li class="list-group-item">Дата публикации: {{ article.created_at }}</li>
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
